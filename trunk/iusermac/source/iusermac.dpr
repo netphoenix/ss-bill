@@ -121,7 +121,7 @@ begin
                     // запись
 //                    writeln(format('%s  %15s  %s  %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', DT), FramedIPAddress, CiscoAVPAIR, UserName]));
                     AppendToFiles(format('%s  %15s  %s  %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', DT), FramedIPAddress, CiscoAVPAIR, UserName]),stFileMac);
-                    strSQL:=format('insert into accountingmac (DT, IPAddress, ClientMacAddress, UserName) values ("%s", inet_aton("%s"), "%s", "%s") ',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', DT), FramedIPAddress, CiscoAVPAIR, UserName]);
+                    strSQL:=format('insert into accountingmac (DT, IPAddress, ClientMacAddress, UserName) values ("%s", inet_aton("%s"), "%s", "%s"); ',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', DT), FramedIPAddress, CiscoAVPAIR, UserName]);
                           //HexStr(pchar(strTextFile), length(strTextFile))]);
                     try
                       ExecSQL(strSQL);
