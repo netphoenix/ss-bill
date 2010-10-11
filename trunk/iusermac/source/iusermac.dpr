@@ -213,6 +213,7 @@ begin
     finally
       MySQLServ.Free;
       MySQLServ := nil;
+      writeln(format('end: %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', now())]));
       Writeln(SCharToOem('Обработка закончена. ENTER'));
     end;  //try
   end;
