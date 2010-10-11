@@ -58,7 +58,7 @@ begin
 //    writeln(format('begin: %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', now())]));
 //    writeln('');
 
-    stFileErr := ChangeFileExt(afilename, '.log');
+    stFileErr := ChangeFileExt(afilename, '.err');
     stFileMAC := ChangeFileExt(afilename, '.mac');
 
     fs := tfilestream.create(afilename, fmopenread or fmShareDenyWrite);

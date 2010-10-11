@@ -1,4 +1,4 @@
-program iusermac;
+program Project1;
 
 {$APPTYPE CONSOLE}
 
@@ -49,16 +49,19 @@ var
   DT: TDateTime;
   i, nline: longint;
   Parsed: boolean;
-  strSQL: string;
+  strSQL,stFileErr,stFileMAC: string;
 begin
   with TMySQLDataset.Create(nil) do
   try
     Server := MySQLServ;
 
-    writeln(format('begin: %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', now())]));
-    writeln('');
+//    writeln(format('begin: %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', now())]));
+//    writeln('');
 
-    fs := tfilestream.create(afilename, fmopenread);
+    stFileErr := ChangeFileExt(afilename, '.log');
+    stFileMAC := ChangeFileExt(afilename, '.mac');
+
+    fs := tfilestream.create(afilename, fmopenread or fmShareDenyWrite);
     try
       nline:=0;
       FramedIPAddress := '';
@@ -91,23 +94,33 @@ begin
                     FramedIPAddress := '';
                     CiscoAVPAIR := '';
                     UserName := '';
+                    //writeln(s);
                 end;
                 if Parsed=true then begin
-                if Pos('Cisco-AVPAIR : String Value = client-mac-address=', s) = 21 then
+                if Pos('Cisco-AVPAIR : String Value = client-mac-address=', s) = 21 then begin
                   CiscoAVPAIR := copy(s, 70, 14);
-                  DT := StrToDateTime(ExchangeChars(copy(s, 1, 19), '/', DateSeparator));
+                  //DT := StrToDateTime(ExchangeChars(copy(s, 1, 19), '/', DateSeparator));
+                  DT := StrToDateTime(copy(s, 4, 2)+'.'+copy(s, 1, 2)+'.'+copy(s, 7, 4)+copy(s, 11, 9));
                   //CiscoAVPAIR := s;
-                if Pos('Framed-IP-Address : IPAddress =', s) = 21 then
+                  //writeln(s);
+                end;
+                if Pos('Framed-IP-Address : IPAddress =', s) = 21 then begin
                   FramedIPAddress := copy(s, 53, length(s)-52);
                   //FramedIPAddress := s;
-                if Pos('User-Name : String Value =', s) = 21 then
+                  //writeln(s);
+                end;
+                if Pos('User-Name : String Value =', s) = 21 then begin
                   UserName := copy(s, 48, length(s)-47);
                   //UserName := s;
+                  //writeln(s);
+                end;
                 if Pos('Acct-Status-Type : Integer Value = 2', s) = 21 then
                 begin
+                  //writeln(s);
                   if (FramedIPAddress<>'') and (CiscoAVPAIR<>'') and (UserName<>'') then begin
                     // запись
-                    writeln(format('%s  %15s  %s  %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', DT), FramedIPAddress, CiscoAVPAIR, UserName]));
+//                    writeln(format('%s  %15s  %s  %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', DT), FramedIPAddress, CiscoAVPAIR, UserName]));
+                    AppendToFiles(format('%s  %15s  %s  %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', DT), FramedIPAddress, CiscoAVPAIR, UserName]),stFileMac);
                     strSQL:=format('insert into accountingmac (DT, IPAddress, ClientMacAddress, UserName) values ("%s", inet_aton("%s"), "%s", "%s") ',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', DT), FramedIPAddress, CiscoAVPAIR, UserName]);
                           //HexStr(pchar(strTextFile), length(strTextFile))]);
                     try
@@ -116,6 +129,7 @@ begin
                       on E: exception do
                       begin
                         AppendToLog(E.Message);
+                        AppendToFiles(strSQL,stFileErr);
                       end;  //on
                     end;
 
@@ -143,8 +157,8 @@ begin
       fs.free;
     end;
 
-    writeln(format('end: %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', now())]));
-    writeln('');
+//    writeln(format('end: %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', now())]));
+//    writeln('');
 
   finally
     Free;
@@ -199,6 +213,7 @@ begin
     finally
       MySQLServ.Free;
       MySQLServ := nil;
+      writeln(format('end: %s',[FORMATDATETIME('yyyy.mm.dd hh:mm:ss', now())]));
       Writeln(SCharToOem('Обработка закончена. ENTER'));
     end;  //try
   end;
